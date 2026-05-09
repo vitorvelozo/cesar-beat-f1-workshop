@@ -8,6 +8,8 @@ dependencies = [
     "fastf1>=3.8.3",
     "ipympl>=0.10.0",
     "matplotlib>=3.10.9",
+    "numpy>=2.4.4",
     "pandas>=2.3.3",
+    "scipy>=1.17.1",
     "seaborn>=0.13.2",
 ]
