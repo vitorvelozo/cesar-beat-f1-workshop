@@ -470,76 +470,11 @@
    ]
   },
   {
-   "cell_type": "markdown",
-   "id": "73c4c6dc",
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1cb66e16",
    "metadata": {},
-   "source": [
-    "The most important factor for finishing position at this circuit is lap time, which showed the strongest correlation with race results — the highest of all metrics analyzed."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "933377d8",
-   "metadata": {},
-   "source": [
-    "The second most impactful metric for positions was speed through the first intermediate sector (correlation of −0.42), suggesting this section of the circuit is particularly decisive for performance."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "0e147b9a",
-   "metadata": {},
-   "source": [
-    "### 🕒 What drives fast lap times?"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "f31a56c9",
-   "metadata": {},
-   "source": [
-    "Looking specifically at push laps (laps within 107% of the fastest lap), the analysis found:\n",
-    "- **Speed through the first intermediate** has the strongest correlation with lower lap times (−0.72).\n",
-    "- **Finishing line speed and second intermediate speed** are also strongly correlated (−0.59 and −0.58, respectively).\n",
-    "- **Tyre stint length** shows a notable correlation (−0.48) — lap times generally improve as the stint progresses, reflecting team strategy and tyre warm-up. This is an effect of strategy and tyre management choices!"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "896b0450",
-   "metadata": {},
-   "source": [
-    "### ♟️ Race stategies"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "7ccdb2e7",
-   "metadata": {},
-   "source": [
-    "Despite the strong lap time correlation with position (0.58), there's significant unexplained variance, pointing to the importance of strategy — pit stops, tyre management, and response to safety cars."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "b3770b62",
-   "metadata": {},
-   "source": [
-    "The notebook computed historical flag incidents (red, yellow, and black flags) across the race editions analyzed, examining total incidents (13), the **mean per race (4.3)**, the **minimum in a single year (3)**, and **last year's count (5)**."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "f9051900",
-   "metadata": {},
-   "source": [
-    "## 🌱 Future works and improvements"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "e21d9591",
-   "metadata": {},
+   "outputs": [],
    "source": []
   }
  ],

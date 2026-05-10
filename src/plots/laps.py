@@ -7,8 +7,7 @@ from seaborn import heatmap, lineplot
 from plots.tyres import F1_RED
 
 
-def plot_laptime_correlation_heatmap(data: DataFrame) -> None:
-    """Plot correlations between LapTime and other variables."""
+def _plot_correlation_heatmap(data: DataFrame) -> DataFrame:
     df_numeric = data.copy()
     df_numeric = df_numeric.select_dtypes(include=["float64", "int64"])
 
@@ -34,8 +33,25 @@ def plot_laptime_correlation_heatmap(data: DataFrame) -> None:
     plt.tight_layout()
     plt.show()
 
+    return corr_matrix
+
+
+def plot_position_correlation_heatmap(data: DataFrame) -> None:
+    """Plot correlations between Position and other variables."""
+    corr_matrix = _plot_correlation_heatmap(data)
+
+    if "Position" in corr_matrix.columns:
+        print("\n--- Correlations with position ---")
+        laptime_corr = corr_matrix["Position"].sort_values(ascending=False, key=abs)
+        print(f"{laptime_corr.drop('Position').map(lambda x: f'{x:.2f}')}")
+
+
+def plot_laptime_correlation_heatmap(data: DataFrame) -> None:
+    """Plot correlations between LapTime and other variables."""
+    corr_matrix = _plot_correlation_heatmap(data)
+
     if "LapTime_s" in corr_matrix.columns:
-        print("\n--- Correlations with LapTime_s ---")
+        print("\n--- Correlations with lap time ---")
         laptime_corr = corr_matrix["LapTime_s"].sort_values(ascending=False, key=abs)
         print(f"{laptime_corr.drop('LapTime_s').map(lambda x: f'{x:.2f}')}")
 
