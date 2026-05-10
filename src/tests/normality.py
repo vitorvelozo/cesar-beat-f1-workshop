@@ -7,6 +7,7 @@ from scipy.stats import probplot, shapiro
 
 F1_RED = "#FF1801"
 
+
 def shapiro_wilk_test(data: Series, alpha: float = 0.05) -> bool:
     """Check if the series follows normal distribtuion."""
     statistic, p_value = shapiro(data)
@@ -22,9 +23,10 @@ def shapiro_wilk_test(data: Series, alpha: float = 0.05) -> bool:
 
 
 def plot_normality_visual_inspection(data: Series) -> None:
+    """Plot histogram and Q-Q plot for visual normality inspection."""
     _, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-    sns.histplot(data, kde=True, ax=axes[0], color=F1_RED, alpha=1.0)
+    sns.histplot(data, kde=True, ax=axes[0], color=F1_RED, alpha=1.0)  # pyright: ignore[reportArgumentType]
     axes[0].set_title("Histogram")
 
     axes[0].get_lines()[0].set_color("white")

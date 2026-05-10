@@ -1,6 +1,13 @@
-from collections.abc import Callable
+"""Module for processing and analyzing lap data."""
 
-from pandas import DataFrame
+from collections.abc import Callable
+from typing import Any
+
+from pandas import DataFrame, isna
+
+
+def _format_delta(val: Any) -> str | None:
+    return None if isna(val) else val
 
 
 def get_means_for_laps(push_laps: DataFrame) -> tuple[float, float]:
@@ -12,25 +19,25 @@ def get_means_for_laps(push_laps: DataFrame) -> tuple[float, float]:
 
 def get_tyre_life_stats(
     data: DataFrame,
-    delta_formatter: Callable[[float], any],
-    is_sprint: bool = False,
+    session: str | None = None,
+    delta_formatter: Callable[[float], Any] = _format_delta,
 ) -> DataFrame:
-    """Filter lap data by session, calculates the mean lap time per tyre life
-    and computes the formatted delta between consecutive laps.
+    """Calculate mean lap times by tyre life with optional session filtering.
+
+    Args:
+        data: DataFrame containing lap data, including 'Session', 'TyreLife', and
+        'LapTime_s'.
+        session: Optional session name to filter laps before aggregation.
+        delta_formatter: Callable to format the delta between consecutive mean lap
+        times.
+
     """
     filtered_df = data.copy()
-    if is_sprint:
-        session_val = 1 if is_sprint else 0
-        filtered_df = data[data["Session_Sprint"] == session_val]
+    if session:
+        filtered_df = data[data["Session"] == session]
 
-    stats_df = (
-        filtered_df.groupby("TyreLife")["LapTime_s"]
-        .mean()
-        .reset_index()
-    )
+    stats_df = filtered_df.groupby("TyreLife")["LapTime_s"].mean().reset_index()
 
-    stats_df["Delta"] = (
-        stats_df["LapTime_s"].diff().apply(delta_formatter)
-    )
+    stats_df["Delta"] = stats_df["LapTime_s"].diff().apply(delta_formatter)
 
     return stats_df
