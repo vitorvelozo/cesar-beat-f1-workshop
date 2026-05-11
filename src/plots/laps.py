@@ -81,7 +81,7 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
         overall_color: Color used for the overall average line.
 
     """
-    plt.figure(figsize=(18, 6))
+    plt.figure(figsize=(15, 5))
 
     ax = lineplot(
         data=grid_data,

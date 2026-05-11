@@ -117,7 +117,7 @@ def plot_average_lap_time_by_tyre_wear(
         session: Session name used in the plot title.
 
     """
-    plt.figure(figsize=(18, 6))
+    plt.figure(figsize=(15, 6))
 
     ax = sns.lineplot(
         data=data,
