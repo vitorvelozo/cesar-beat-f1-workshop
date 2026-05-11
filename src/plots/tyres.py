@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from fastf1 import plotting
+from fastf1.core import Session
+from pandas import DataFrame
 
 from tests.normality import F1_RED
 
@@ -171,5 +173,48 @@ def plot_average_lap_time_by_tyre_wear(
     )
 
     plt.grid(axis="y", linestyle="--", alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_tyre_strategy(drivers: DataFrame, stints: DataFrame, session: Session) -> None:
+    """Plot tyre strategy for drivers in a session.
+
+    Args:
+        drivers: List or iterable of driver names.
+        stints: DataFrame containing stint information.
+        session: FastF1 session object.
+
+    """
+    _, ax = plt.subplots(figsize=(5, 10))
+
+    for driver in drivers:
+        driver_stints = stints.loc[stints["Driver"] == driver]
+
+        previous_stint_end = 0
+        for _, row in driver_stints.iterrows():
+            compound_color = plotting.get_compound_color(
+                row["Compound"],
+                session=session,
+            )
+            plt.barh(
+                y=driver,
+                width=row["StintLength"],
+                left=previous_stint_end,
+                color=compound_color,
+                edgecolor="black",
+                fill=True,
+            )
+
+            previous_stint_end += row["StintLength"]
+
+    plt.title("2025 Qatar Grand Prix")
+    plt.xlabel("Lap Number")
+    ax.invert_yaxis()
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+
     plt.tight_layout()
     plt.show()

@@ -1,8 +1,13 @@
 """Aggregates plots for lap data."""
 
+from typing import Literal, LiteralString
+
 import matplotlib.pyplot as plt
+from fastf1 import plotting
+from fastf1.core import Session
 from pandas import DataFrame, isna, merge
-from seaborn import heatmap, lineplot
+from scipy.odr import Data
+from seaborn import boxplot, despine, heatmap, lineplot, swarmplot, violinplot
 
 from plots.tyres import F1_RED
 
@@ -167,5 +172,117 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
 
     plt.legend(frameon=True, facecolor="black", edgecolor="none")
     plt.grid(axis="y", linestyle="--", alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_lap_time_box_plots(
+    laps_data: DataFrame,
+    session: Session,
+    mode: Literal["Driver", "Team"],
+) -> None:
+    """Plot box plots of lap times by team or driver for a given session.
+
+    Args:
+        laps_data: DataFrame containing lap data with Team, Driver, and LapTime_s columns.
+        session: Session object containing session information for the plot title.
+        mode: Column to compare lap time to. 'Driver' or 'Team'.
+
+    """
+    plot_order = (
+        laps_data[[mode, "LapTime_s"]]
+        .groupby(mode)
+        .median()["LapTime_s"]
+        .sort_values()
+        .index
+    )
+
+    if mode == "Team":
+        palette = {
+            team: plotting.get_team_color(team, session=session) for team in plot_order
+        }
+    elif mode == "Driver":
+        driver_team_dict = laps_data.set_index("Driver")["Team"].to_dict()
+        palette = {
+            driver: plotting.get_team_color(team, session=session)
+            for driver, team in driver_team_dict.items()
+            if driver in plot_order
+        }
+
+    _, ax = plt.subplots(figsize=(15, 10))
+
+    boxplot(
+        data=laps_data,
+        x=mode,
+        y="LapTime_s",
+        hue=mode,
+        order=plot_order,
+        palette=palette,
+        linecolor="white",
+        linewidth=1.5,
+        legend=False,
+        ax=ax,
+    )
+
+    for line in ax.lines:
+        if line.get_linestyle() == "-":
+            line.set_color("grey")
+
+    plt.title(str(session))
+    plt.grid(visible=False)
+
+    ax.set(xlabel=None)
+    plt.ylabel("Lap time (seconds)")
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_driver_lap_time_distributions(
+    driver_laps: DataFrame,
+    finishing_order: list[str],
+    session: Session,
+) -> None:
+    """Plot lap time distributions for each driver in a session.
+
+    Args:
+        driver_laps: DataFrame containing driver lap data.
+        finishing_order: Ordered list of drivers by finishing position.
+        session: Session object used for title and color mapping.
+
+    """
+    _, ax = plt.subplots(figsize=(10, 5))
+
+    driver_laps["LapTime_s"] = driver_laps["LapTime"].dt.total_seconds()
+
+    violinplot(
+        data=driver_laps,
+        x="Driver",
+        y="LapTime_s",
+        hue="Driver",
+        inner=None,
+        density_norm="area",
+        order=finishing_order,
+        palette=plotting.get_driver_color_mapping(session=session),
+    )
+
+    swarmplot(
+        data=driver_laps,
+        x="Driver",
+        y="LapTime_s",
+        order=finishing_order,
+        hue="Compound",
+        palette=plotting.get_compound_mapping(session=session),
+        hue_order=["SOFT", "MEDIUM", "HARD"],
+        linewidth=0,
+        size=4,
+    )
+
+    ax.set_xlabel("Driver")
+    ax.set_ylabel("Lap time (seconds)")
+    plt.suptitle(
+        f"{session.event.EventName} {session.event.year} lap time distributions",
+    )
+    despine(left=True, bottom=True)
+
     plt.tight_layout()
     plt.show()
