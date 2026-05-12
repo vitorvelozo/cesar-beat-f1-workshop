@@ -26,6 +26,6 @@ def compare_team_series_to_overall_series(
         if current_team == team:
             continue
         print(f"Comparing against {current_team}")
-        current_team_series = data.pick_teams(team)[column]
+        current_team_series = data.pick_teams(current_team)[column]
         hypothesis_test(team_series, current_team_series)
         print()
