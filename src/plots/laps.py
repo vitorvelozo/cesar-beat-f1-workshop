@@ -231,6 +231,9 @@ def plot_lap_time_box_plots(
     laps_data: DataFrame,
     session: Session,
     mode: Literal["Driver", "Team"],
+    title_str: str = "Lap time box plots",
+    ylabel: str = "Lap time (seconds)",
+    point_finishers: list[str] | None = None,
 ) -> None:
     """Plot box plots of lap times by team or driver for a given session.
 
@@ -240,6 +243,9 @@ def plot_lap_time_box_plots(
         mode: Column to compare lap time to. 'Driver' or 'Team'.
 
     """
+    if point_finishers is not None:
+        laps_data = laps_data[laps_data.DriverNumber.isin(point_finishers)]
+
     plot_order = (
         laps_data[[mode, "LapTime_s"]]
         .groupby(mode)
@@ -279,13 +285,11 @@ def plot_lap_time_box_plots(
         if line.get_linestyle() == "-":
             line.set_color("grey")
 
-    plt.title(
-        f"{session.event.year} {session.event.EventName} lap time box plots by {mode.lower()}"
-    )
+    plt.title(title_str)
     plt.grid(visible=False)
 
     ax.set(xlabel=None)
-    plt.ylabel("Lap time (seconds)")
+    plt.ylabel(ylabel)
     plt.tight_layout()
     plt.show()
 

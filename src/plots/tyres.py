@@ -258,7 +258,13 @@ def plot_average_lap_time_by_tyre_wear(
     plt.show()
 
 
-def plot_tyre_strategy(drivers: DataFrame, stints: DataFrame, session: Session) -> None:
+def plot_tyre_strategy(
+    drivers: DataFrame,
+    stints: DataFrame,
+    session: Session,
+    title_str: str = "Tyre strategy",
+    xlabel: str = "Lap number",
+) -> None:
     """Plot tyre strategy for drivers in a session.
 
     Args:
@@ -267,7 +273,7 @@ def plot_tyre_strategy(drivers: DataFrame, stints: DataFrame, session: Session) 
         session: FastF1 session object.
 
     """
-    _, ax = plt.subplots(figsize=(5, 10))
+    _, ax = plt.subplots(figsize=(5, 7))
 
     for driver in drivers:
         driver_stints = stints.loc[stints["Driver"] == driver]
@@ -289,8 +295,8 @@ def plot_tyre_strategy(drivers: DataFrame, stints: DataFrame, session: Session) 
 
             previous_stint_end += row["StintLength"]
 
-    plt.title("2025 Qatar Grand Prix")
-    plt.xlabel("Lap Number")
+    plt.title(title_str)
+    plt.xlabel(xlabel)
     ax.invert_yaxis()
 
     ax.spines["top"].set_visible(False)

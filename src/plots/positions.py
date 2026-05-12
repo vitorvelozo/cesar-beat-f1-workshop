@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from plots.cars import draw_f1_car
 
 
-def plot_starting_grid(session: Session) -> None:
+def plot_starting_grid(session: Session, title_str: str = "Starting Grid") -> None:
     """Load the race session results for a specified Grand Prix, extracts
     the final starting grid, and plots an authentic staggered grid visual using car icons.
 
@@ -90,7 +90,7 @@ def plot_starting_grid(session: Session) -> None:
     )
 
     ax.set_title(
-        f"{session.event.year} {session.event.EventName}\nStarting Grid",
+        title_str,
         pad=20,
     )
 
@@ -104,7 +104,12 @@ def plot_starting_grid(session: Session) -> None:
     plt.show()
 
 
-def plot_position_changes(session: Session) -> None:
+def plot_position_changes(
+    session: Session,
+    title_str: str = "Position changes",
+    xlabel: str = "Lap",
+    ylabel: str = "Position",
+) -> None:
     """Plot position changes for each driver in a session.
 
     Args:
@@ -131,11 +136,11 @@ def plot_position_changes(session: Session) -> None:
 
     ax.set_ylim([20.5, 0.5])
     ax.set_yticks([1, 5, 10, 15, 20])
-    ax.set_xlabel("Lap")
-    ax.set_ylabel("Position")
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
     ax.legend(bbox_to_anchor=(1.0, 1.02))
-    ax.set_title(f"Position changes during the {session.event.year} {session.event.EventName}")
+    ax.set_title(title_str)
     plt.tight_layout()
 
     plt.show()
