@@ -6,17 +6,34 @@ from pandas import Series
 from scipy.stats import probplot, shapiro
 
 
-def shapiro_wilk_test(data: Series, alpha: float = 0.05) -> bool:
-    """Check if the series follows normal distribtuion."""
+def shapiro_wilk_test(data: Series, alpha: float = 0.05, language: str = "en") -> bool:
+    """Check if the series follows normal distribution."""
+
+    def _get_reject_h0() -> str:
+        default = "The data does NOT look normally distributed."
+        text_by_language = {
+            "en": default,
+            "pt": "Os dados NÃO parecem normalmente distribuídos.",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_fail_reject_h0() -> str:
+        default = "The data looks normally distributed."
+        text_by_language = {
+            "en": default,
+            "pt": "Os dados parecem normalmente distribuídos",
+        }
+        return text_by_language.get(language, default)
+
     statistic, p_value = shapiro(data)
 
-    print(f"Test stastic {statistic:.4f}")
+    print(f"Test statistic {statistic:.4f}")
     print(f"P-Value {p_value:.4f}")
 
     if p_value > alpha:
-        print("The data looks normally distributed")
+        print(_get_fail_reject_h0())
         return True
-    print("The data does NOT look normally distributed.")
+    print(_get_reject_h0())
     return False
 
 

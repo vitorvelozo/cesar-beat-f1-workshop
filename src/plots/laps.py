@@ -77,19 +77,62 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
     compound: str,
     session: Session,
     overall_color: str = "white",
+    language: str = "en",
 ) -> None:
     """Plot team lap time performance against the overall average by tyre life.
 
     Args:
         grid_data: DataFrame containing the overall average lap times by tyre life.
         team_data: DataFrame containing the team's lap times by tyre life.
-        team_name: Name of the team.
         compound: Tyre compound used for the comparison.
         session: Session name for the plot title.
-        team_color: Color used for the team line.
         overall_color: Color used for the overall average line.
-
+        language: Language for the plot labels ("en" or "pt").
     """
+
+    def _get_title() -> str:
+        session_name = session.name.lower()
+        compound_name = compound.lower()
+
+        default = f"Selected team vs. Grid average {session_name} lap times by tyre life ({compound_name} compound)"
+        text_by_language = {
+            "en": default,
+            "pt": f"Equipe selecionada vs. Média do grid de tempos de volta na {session_name} por vida do pneu (composto {compound_name})",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_xlabel() -> str:
+        default = "Tyre Life (Laps)"
+        text_by_language = {
+            "en": default,
+            "pt": "Vida do pneu (voltas)",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_ylabel() -> str:
+        default = "Average Lap Time (Seconds)"
+        text_by_language = {
+            "en": default,
+            "pt": "Tempo médio de volta (segundos)",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_grid_label() -> str:
+        default = "Grid average"
+        text_by_language = {
+            "en": default,
+            "pt": "Média do grid",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_team_label() -> str:
+        default = "Team average"
+        text_by_language = {
+            "en": default,
+            "pt": "Média da equipe",
+        }
+        return text_by_language.get(language, default)
+
     plt.figure(figsize=(15, 5))
 
     ax = lineplot(
@@ -100,7 +143,7 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
         color=overall_color,
         linewidth=2.0,
         markersize=6,
-        label="Grid average",
+        label=_get_grid_label(),
         linestyle="--",
         alpha=0.7,
     )
@@ -114,7 +157,7 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
         markeredgecolor="#bbbbbb",
         linewidth=2.5,
         markersize=8,
-        label="Team average",
+        label=_get_team_label(),
         ax=ax,
     )
 
@@ -160,18 +203,13 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
             path_effects=[pe.withStroke(linewidth=2, foreground="black")],
         )
 
-    title_str = (
-        f"Selected team vs. Grid average {session.name.lower()} lap times by tyre life "
-    )
-    title_str += f"({compound.lower()} compound)"
-
     plt.title(
-        title_str,
+        _get_title(),
         fontsize=14,
         pad=15,
     )
-    plt.xlabel("Tyre Life (Laps)", fontsize=12)
-    plt.ylabel("Average Lap Time (Seconds)", fontsize=12)
+    plt.xlabel(_get_xlabel(), fontsize=12)
+    plt.ylabel(_get_ylabel(), fontsize=12)
 
     min_lap = int(
         min(grid_data["TyreLife"].min(), team_data["TyreLife"].min()),

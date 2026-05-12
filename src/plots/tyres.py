@@ -16,14 +16,40 @@ plotting.setup_mpl(mpl_timedelta_support=True, color_scheme="fastf1")
 def plot_laptime_distribution_by_team_with_tyre_life(
     data: pd.DataFrame,
     session: Any,
+    language: str = "en",
 ) -> None:
     """Plot lap time distribution by team with tyre life overlay.
 
     Args:
         data: DataFrame containing lap times, teams, and tyre life information.
         session: FastF1 session object for team color retrieval.
-
+        language: Language for the plot labels ("en" or "pt").
     """
+
+    def _get_title() -> str:
+        default = "Lap time distribution by team (shaded by tyre life)"
+        text_by_language = {
+            "en": default,
+            "pt": "Distribuição de tempo de volta por equipe (sombreado por vida do pneu)",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_ylabel() -> str:
+        default = "Lap time (seconds)"
+        text_by_language = {
+            "en": default,
+            "pt": "Tempo de volta (segundos)",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_legend_title() -> str:
+        default = "Tyre life (laps)"
+        text_by_language = {
+            "en": default,
+            "pt": "Vida do pneu (voltas)",
+        }
+        return text_by_language.get(language, default)
+
     median_order = data.groupby("Team")["LapTime_s"].median().sort_values().index
     team_palette = {
         team: plotting.get_team_color(team, session=session) for team in median_order
@@ -59,9 +85,9 @@ def plot_laptime_distribution_by_team_with_tyre_life(
         size=4,
     )
 
-    plt.legend(title="Tyre life (laps)", bbox_to_anchor=(1.05, 1), loc="upper left")
-    plt.title("Lap time distribution by team (shaded by tyre life)")
-    plt.ylabel("Lap time (seconds)", fontsize=12)
+    plt.legend(title=_get_legend_title(), bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.title(_get_title())
+    plt.ylabel(_get_ylabel(), fontsize=12)
     plt.tight_layout()
     plt.show()
 
@@ -70,15 +96,42 @@ def plot_tyre_decay_scatter_plot(
     data: pd.DataFrame,
     hue: str = "Session",
     title_color: str = "white",
+    language: str = "en",
 ) -> None:
-    """Plot tyre degradation as a scatter plot with optional KDE overlay.
+    """Plot tyre degradation as a scatter plot.
 
     Args:
         data: DataFrame containing tyre wear and lap time information.
-        kde: Whether to overlay a 2D KDE plot on the scatter plot.
         hue: Column name used to color the points.
-
+        title_color: Color of the title text.
+        language: Language for the plot labels ("en" or "pt").
     """
+
+    def _get_title() -> str:
+        compound_name = data["Compound"].iloc[0].lower()
+        default = f"Tyre degradation: Lap times as tyre life increases ({compound_name} compound)"
+        text_by_language = {
+            "en": default,
+            "pt": f"Degradação de pneus: Tempos de volta conforme a vida do pneu aumenta (composto {compound_name})",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_xlabel() -> str:
+        default = "Tyre life (laps)"
+        text_by_language = {
+            "en": default,
+            "pt": "Vida do pneu (voltas)",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_ylabel() -> str:
+        default = "Lap time (seconds)"
+        text_by_language = {
+            "en": default,
+            "pt": "Tempo de volta (segundos)",
+        }
+        return text_by_language.get(language, default)
+
     plt.figure(figsize=(10, 5))
 
     sns.scatterplot(
@@ -90,16 +143,13 @@ def plot_tyre_decay_scatter_plot(
         s=50,
     )
 
-    title_str = "Tyre degradation: Lap times as tyre life increases "
-    title_str += f"({data['Compound'].iloc[0].lower()} compound)"
-
     plt.title(
-        title_str,
+        _get_title(),
         fontsize=14,
         color=title_color,
     )
-    plt.xlabel("Tyre life (laps)", fontsize=12)
-    plt.ylabel("Lap time (seconds)", fontsize=12)
+    plt.xlabel(_get_xlabel(), fontsize=12)
+    plt.ylabel(_get_ylabel(), fontsize=12)
 
     plt.tight_layout()
     plt.show()
@@ -109,6 +159,7 @@ def plot_average_lap_time_by_tyre_wear(
     data: pd.DataFrame,
     compound: str,
     session: Any,
+    language: str = "en",
 ) -> None:
     """Plot average lap time by tyre wear for a given compound and session.
 
@@ -116,8 +167,38 @@ def plot_average_lap_time_by_tyre_wear(
         data: DataFrame containing tyre life and lap time data.
         compound: Tyre compound name used in the plot title.
         session: Session name used in the plot title.
-
+        language: Language for the plot labels ("en" or "pt").
     """
+
+    def _get_title() -> str:
+        session_name = session.session_info["Name"].lower()
+        compound_name = compound.lower()
+
+        default = (
+            f"Average {session_name} lap time by tyre life ({compound_name} compound)"
+        )
+        text_by_language = {
+            "en": default,
+            "pt": f"Tempo médio de volta na {session_name} por vida do pneu (composto {compound_name})",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_xlabel() -> str:
+        default = "Tyre life (number of laps)"
+        text_by_language = {
+            "en": default,
+            "pt": "Vida do pneu (quantidade de voltas)",
+        }
+        return text_by_language.get(language, default)
+
+    def _get_ylabel() -> str:
+        default = "Average lap time (seconds)"
+        text_by_language = {
+            "en": default,
+            "pt": "Tempo médio de volta (segundos)",
+        }
+        return text_by_language.get(language, default)
+
     plt.figure(figsize=(15, 6))
 
     ax = sns.lineplot(
@@ -156,15 +237,12 @@ def plot_average_lap_time_by_tyre_wear(
             path_effects=[pe.withStroke(linewidth=2, foreground="black")],
         )
 
-    title_str = f"Average {session.session_info['Name'].lower()} lap time by tyre life "
-    title_str += f"({compound.lower()} compound)"
-
     plt.title(
-        title_str,
+        _get_title(),
         fontsize=14,
     )
-    plt.xlabel("Tyre life (laps)", fontsize=12)
-    plt.ylabel("Average lap time (seconds)", fontsize=12)
+    plt.xlabel(_get_xlabel(), fontsize=12)
+    plt.ylabel(_get_ylabel(), fontsize=12)
 
     min_lap = int(data["TyreLife"].min())
     max_lap = int(data["TyreLife"].max())
