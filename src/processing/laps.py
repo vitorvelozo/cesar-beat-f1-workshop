@@ -190,12 +190,16 @@ def load_race_timeline(
 
         # Compute Regular Lap Completion Standings
         table_data, plot_data = _process_lap_data(current_laps, leader_time, session)
+        
+        title_str = f"Lap {lap_num} / {total_laps} Complete"
+        if current_flag_status:
+            title_str += f" |  Status: {current_flag_status}"
 
         timeline_stops.append(
             {
                 "type": "lap",
                 "lap": lap_num,
-                "title": f"Lap {lap_num} / {total_laps} Complete  |  Status: {current_flag_status}",
+                "title": title_str,
                 "table": table_data,
                 "plot": plot_data,
                 "flag": current_flag_status,

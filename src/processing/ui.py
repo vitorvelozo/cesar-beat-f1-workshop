@@ -81,10 +81,11 @@ class RaceReplayApp:
 
     def _get_title_color(self, flag_str: str) -> str:
         """Determine the title header color based on flag keywords."""
-        flag_upper = flag_str.upper()
-        for key, color in FLAG_COLORS.items():
-            if key in flag_upper:
-                return color
+        if flag_str:
+            flag_upper = flag_str.upper()
+            for key, color in FLAG_COLORS.items():
+                if key in flag_upper:
+                    return color
         return FLAG_COLORS["DEFAULT"]
 
     def _style_table(self, table, tyre_col_idx: int) -> None:

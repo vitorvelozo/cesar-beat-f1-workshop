@@ -5,8 +5,6 @@ import seaborn as sns
 from pandas import Series
 from scipy.stats import probplot, shapiro
 
-F1_RED = "#FF1801"
-
 
 def shapiro_wilk_test(data: Series, alpha: float = 0.05) -> bool:
     """Check if the series follows normal distribtuion."""
@@ -22,24 +20,28 @@ def shapiro_wilk_test(data: Series, alpha: float = 0.05) -> bool:
     return False
 
 
-def plot_normality_visual_inspection(data: Series) -> None:
+def plot_normality_visual_inspection(
+    data: Series, title: str = None, color: str = "#f691fa"
+) -> None:
     """Plot histogram and Q-Q plot for visual normality inspection."""
-    _, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-    sns.histplot(data, kde=True, ax=axes[0], color=F1_RED, alpha=1.0)  # pyright: ignore[reportArgumentType]
-    axes[0].set_title("Histogram")
+    sns.histplot(data, kde=True, ax=axes[0], color=color, alpha=1.0)  # pyright: ignore[reportArgumentType]
+    axes[0].set_title("Histogram", fontsize=12)
 
-    axes[0].get_lines()[0].set_color("white")
+    if axes[0].lines:
+        axes[0].lines[-1].set_color("#36cfba")
 
     probplot(data, dist="norm", plot=axes[1])
-    axes[1].set_title("Q-Q Plot")
+    axes[1].set_title("Q-Q Plot", fontsize=12)
 
     qq_lines = axes[1].get_lines()
-
-    qq_lines[1].set_color("white")
-
-    qq_lines[0].set_color(F1_RED)
+    qq_lines[1].set_color("#36cfba")
+    qq_lines[0].set_color(color)
     qq_lines[0].set_alpha(0.75)
+
+    if title:
+        fig.suptitle(title, fontsize=14)
 
     plt.tight_layout()
     plt.show()

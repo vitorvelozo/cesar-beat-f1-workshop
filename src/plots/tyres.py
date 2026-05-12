@@ -2,14 +2,13 @@
 
 from typing import Any
 
+import matplotlib.patheffects as pe
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from fastf1 import plotting
 from fastf1.core import Session
 from pandas import DataFrame
-
-from tests.normality import F1_RED
 
 plotting.setup_mpl(mpl_timedelta_support=True, color_scheme="fastf1")
 
@@ -70,6 +69,7 @@ def plot_laptime_distribution_by_team_with_tyre_life(
 def plot_tyre_decay_scatter_plot(
     data: pd.DataFrame,
     hue: str = "Session",
+    title_color: str = "white",
 ) -> None:
     """Plot tyre degradation as a scatter plot with optional KDE overlay.
 
@@ -96,6 +96,7 @@ def plot_tyre_decay_scatter_plot(
     plt.title(
         title_str,
         fontsize=14,
+        color=title_color,
     )
     plt.xlabel("Tyre life (laps)", fontsize=12)
     plt.ylabel("Lap time (seconds)", fontsize=12)
@@ -124,7 +125,8 @@ def plot_average_lap_time_by_tyre_wear(
         x="TyreLife",
         y="LapTime_s",
         marker="o",
-        color=F1_RED,
+        color=plotting.get_compound_color(compound, session),
+        markeredgecolor="#bbbbbb",
         linewidth=2.5,
         markersize=8,
     )
@@ -140,7 +142,7 @@ def plot_average_lap_time_by_tyre_wear(
         if pd.isna(delta_val) or str(delta_val).lower() == "nan":
             continue
 
-        text_color = "yellow" if delta_val >= 0 else "lime"
+        text_color = "orange" if delta_val >= 0 else "lime"
         text_str = f"{delta_val:+.3f}"
 
         ax.text(
@@ -151,6 +153,7 @@ def plot_average_lap_time_by_tyre_wear(
             fontsize=10,
             ha="left",
             va="bottom",
+            path_effects=[pe.withStroke(linewidth=2, foreground="black")],
         )
 
     title_str = f"Average {session.session_info['Name'].lower()} lap time by tyre life "

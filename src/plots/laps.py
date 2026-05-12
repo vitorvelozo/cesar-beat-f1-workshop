@@ -1,18 +1,21 @@
 """Aggregates plots for lap data."""
 
-from typing import Literal, LiteralString
+from typing import Literal
 
+import matplotlib.patheffects as pe
 import matplotlib.pyplot as plt
 from fastf1 import plotting
 from fastf1.core import Session
+from numpy import tile
 from pandas import DataFrame, isna, merge
-from scipy.odr import Data
 from seaborn import boxplot, despine, heatmap, lineplot, swarmplot, violinplot
 
-from plots.tyres import F1_RED
 
-
-def _plot_correlation_heatmap(data: DataFrame) -> DataFrame:
+def _plot_correlation_heatmap(
+    data: DataFrame,
+    title: str = "Correlation heatmap",
+    title_color: str = "white",
+) -> DataFrame:
     df_numeric = data.copy()
     df_numeric = df_numeric.select_dtypes(include=["float64", "int64"])
 
@@ -34,16 +37,19 @@ def _plot_correlation_heatmap(data: DataFrame) -> DataFrame:
         cbar_kws={"shrink": 0.8},
     )
 
-    plt.title("Correlation heatmap", fontsize=16, pad=20)
+    plt.title(title, fontsize=16, pad=20, color=title_color)
     plt.tight_layout()
     plt.show()
 
     return corr_matrix
 
 
-def plot_position_correlation_heatmap(data: DataFrame) -> None:
+def plot_position_correlation_heatmap(
+    data: DataFrame,
+    title: str = "Correlation heatmap",
+) -> None:
     """Plot correlations between Position and other variables."""
-    corr_matrix = _plot_correlation_heatmap(data)
+    corr_matrix = _plot_correlation_heatmap(data, title)
 
     if "Position" in corr_matrix.columns:
         print("\n--- Correlations with position ---")
@@ -51,9 +57,13 @@ def plot_position_correlation_heatmap(data: DataFrame) -> None:
         print(f"{laptime_corr.drop('Position').map(lambda x: f'{x:.2f}')}")
 
 
-def plot_laptime_correlation_heatmap(data: DataFrame) -> None:
+def plot_laptime_correlation_heatmap(
+    data: DataFrame,
+    title: str = "Correlation heatmap",
+    title_color: str = "white",
+) -> None:
     """Plot correlations between LapTime and other variables."""
-    corr_matrix = _plot_correlation_heatmap(data)
+    corr_matrix = _plot_correlation_heatmap(data, title, title_color)
 
     if "LapTime_s" in corr_matrix.columns:
         print("\n--- Correlations with lap time ---")
@@ -65,8 +75,7 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
     grid_data: DataFrame,
     team_data: DataFrame,
     compound: str,
-    session: str,
-    team_color: str = F1_RED,
+    session: Session,
     overall_color: str = "white",
 ) -> None:
     """Plot team lap time performance against the overall average by tyre life.
@@ -101,7 +110,8 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
         x="TyreLife",
         y="LapTime_s",
         marker="o",
-        color=team_color,
+        color=plotting.get_compound_color(compound, session),
+        markeredgecolor="#bbbbbb",
         linewidth=2.5,
         markersize=8,
         label="Team average",
@@ -147,9 +157,12 @@ def plot_team_vs_grid_tyre_wear(  # noqa: PLR0913
             fontsize=10,
             ha="left",
             va="bottom",
+            path_effects=[pe.withStroke(linewidth=2, foreground="black")],
         )
 
-    title_str = f"Selected team vs. Grid average {session} lap times by tyre life "
+    title_str = (
+        f"Selected team vs. Grid average {session.name.lower()} lap times by tyre life "
+    )
     title_str += f"({compound.lower()} compound)"
 
     plt.title(
@@ -209,7 +222,7 @@ def plot_lap_time_box_plots(
             if driver in plot_order
         }
 
-    _, ax = plt.subplots(figsize=(15, 10))
+    _, ax = plt.subplots(figsize=(12, 6))
 
     boxplot(
         data=laps_data,
@@ -228,7 +241,9 @@ def plot_lap_time_box_plots(
         if line.get_linestyle() == "-":
             line.set_color("grey")
 
-    plt.title(str(session))
+    plt.title(
+        f"{session.event.year} {session.event.EventName} lap time box plots by {mode.lower()}"
+    )
     plt.grid(visible=False)
 
     ax.set(xlabel=None)
@@ -279,8 +294,8 @@ def plot_driver_lap_time_distributions(
 
     ax.set_xlabel("Driver")
     ax.set_ylabel("Lap time (seconds)")
-    plt.suptitle(
-        f"{session.event.EventName} {session.event.year} lap time distributions",
+    ax.set_title(
+        f"{session.event.year} {session.event.EventName} lap time distributions",
     )
     despine(left=True, bottom=True)
 
