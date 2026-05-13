@@ -10,6 +10,8 @@ from fastf1 import plotting
 from fastf1.core import Session
 from pandas import DataFrame
 
+from plots.anonymize import ANON_TEAM_PALETTE
+
 plotting.setup_mpl(mpl_timedelta_support=True, color_scheme="fastf1")
 
 
@@ -17,15 +19,38 @@ def plot_laptime_distribution_by_team_with_tyre_life(
     data: pd.DataFrame,
     session: Any,
     language: str = "en",
+    hide_team: bool = False,
 ) -> None:
     """Plot lap time distribution by team with tyre life overlay.
 
     Args:
         data: DataFrame containing lap times, teams, and tyre life information.
+              Must contain 'HiddenTeam' column if hide_team is True.
         session: FastF1 session object for team color retrieval.
         language: Language for the plot labels ("en" or "pt").
+        hide_team: If True, plots using 'HiddenTeam' column and ANON_TEAM_PALETTE.
     """
+    target_col = "HiddenTeam" if hide_team else "Team"
 
+    plot_data = data.copy()
+
+    median_order = (
+        plot_data.groupby(target_col)["LapTime_s"].median().sort_values().index
+    )
+
+    if hide_team:
+        fake_colors = sns.color_palette("husl", n_colors=len(median_order))
+        team_palette = {
+            team: ANON_TEAM_PALETTE.get(team, fake_colors[i])
+            for i, team in enumerate(median_order)
+        }
+    else:
+        team_palette = {
+            team: plotting.get_team_color(team, session=session)
+            for team in median_order
+        }
+
+    # 2. Dynamic text helpers
     def _get_title() -> str:
         default = "Lap time distribution by team (shaded by tyre life)"
         text_by_language = {
@@ -50,23 +75,18 @@ def plot_laptime_distribution_by_team_with_tyre_life(
         }
         return text_by_language.get(language, default)
 
-    median_order = data.groupby("Team")["LapTime_s"].median().sort_values().index
-    team_palette = {
-        team: plotting.get_team_color(team, session=session) for team in median_order
-    }
-
+    # Categorize Tyre Life
     bins = [-1, 5, 10, 15, 20, 25]
     labels = ["0-5", "6-10", "11-15", "16-20", "21-25"]
-
-    data["TyreLifeCat"] = pd.cut(data["TyreLife"], bins=bins, labels=labels)
+    plot_data["TyreLifeCat"] = pd.cut(plot_data["TyreLife"], bins=bins, labels=labels)
 
     plt.subplots(figsize=(18, 5))
 
     sns.violinplot(
-        data=data,
-        x="Team",
+        data=plot_data,
+        x=target_col,
         y="LapTime_s",
-        hue="Team",
+        hue=target_col,
         inner=None,
         density_norm="area",
         order=median_order,
@@ -74,8 +94,8 @@ def plot_laptime_distribution_by_team_with_tyre_life(
     )
 
     sns.swarmplot(
-        data=data,
-        x="Team",
+        data=plot_data,
+        x=target_col,
         y="LapTime_s",
         order=median_order,
         hue="TyreLifeCat",

@@ -4,12 +4,15 @@ from typing import Any
 
 from pandas import DataFrame, unique
 
+from plots.anonymize import ANON_TEAM_MAPPING
+
 
 def compare_team_series_to_overall_series(
     hypothesis_test: Any,
     data: DataFrame,
     team: str,
     column: str,
+    hide_team: bool = False,
     **kwargs: Any,
 ) -> None:
     """Compare a team's series against all other teams' series using a hypothesis test.
@@ -32,8 +35,13 @@ def compare_team_series_to_overall_series(
     for current_team in unique(data.Team):
         if current_team == team:
             continue
+
         template = text_by_language.get(language, text_by_language["en"])
-        print(template.format(current_team=current_team))
         current_team_series = data.pick_teams(current_team)[column]
         hypothesis_test(team_series, current_team_series, **kwargs)
+
+        printed_team = current_team
+        if hide_team:
+            printed_team = ANON_TEAM_MAPPING.get(current_team, "Team")
+        print(template.format(current_team=printed_team))
         print()

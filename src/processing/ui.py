@@ -3,6 +3,13 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
+from plots.anonymize import (
+    ANON_DRIVER_MAPPING,
+    ANON_DRIVER_TO_ABBR,
+    ANON_TEAM_MAPPING,
+    ANON_TEAM_PALETTE,
+)
+
 BG_COLOR = "#121212"
 PANEL_BG_HEADER = "#2a2a2a"
 PANEL_BG_ROW = "#1e1e1e"
@@ -29,25 +36,56 @@ TYRE_COLORS = {
 
 
 class RaceReplayApp:
-    def __init__(self, timeline_stops: list[dict], year: int, gp: str) -> None:
+    def __init__(
+        self,
+        timeline_stops: list[dict],
+        year: int,
+        gp: str,
+        hidden_info: bool = False,
+    ) -> None:
         self.timeline_stops = timeline_stops
         self.current_stop_idx = 0
         self.year = year
         self.gp = gp
+        self.hidden_info = hidden_info
 
-        # Setup Figure
         plt.style.use("dark_background")
         self.fig = plt.figure(figsize=(12, 8), facecolor=BG_COLOR)
         self.fig.canvas.manager.set_window_title(
             f"F1 Race Replay - {self.year} {self.gp}"
         )
 
-        # Setup Axes grids
         self.ax_plot = plt.subplot2grid((8, 1), (0, 0), rowspan=2)
         self.ax_table = plt.subplot2grid((8, 1), (2, 0), rowspan=5)
 
         self._setup_buttons()
         self.update_display()
+
+    def _get_display_driver(self, driver_code: str) -> str:
+        """Return the anonymized driver name if hidden_info is active."""
+        if self.hidden_info:
+            return ANON_DRIVER_MAPPING.get(driver_code, driver_code)
+        return driver_code
+
+    def _get_display_team(self, team_name: str) -> str:
+        """Return the anonymized team name if hidden_info is active."""
+        if self.hidden_info:
+            return ANON_TEAM_MAPPING.get(team_name, team_name)
+        return team_name
+
+    def _get_plot_driver_abbr(self, driver_code: str) -> str:
+        """Return the custom 3-letter abbreviation for the track plot if hidden_info is active."""
+        if self.hidden_info:
+            full_anon_name = self._get_display_driver(driver_code)
+            return ANON_DRIVER_TO_ABBR.get(full_anon_name, driver_code)
+        return driver_code
+
+    def _get_team_color(self, team_name: str, default_color: str) -> str:
+        """Retrieve the custom palette color based on the mapped team name."""
+        if self.hidden_info:
+            anon_team = ANON_TEAM_MAPPING.get(team_name)
+            return ANON_TEAM_PALETTE.get(anon_team, default_color)
+        return default_color
 
     def _setup_buttons(self) -> None:
         """Instantiate dark-themed UI buttons and hooks up callbacks."""
@@ -122,13 +160,35 @@ class RaceReplayApp:
 
         title_color = self._get_title_color(stop_data["flag"])
         self.fig.suptitle(
-            stop_data["title"], fontsize=15, fontweight="bold", color=title_color
+            stop_data["title"],
+            fontsize=15,
+            fontweight="bold",
+            color=title_color,
         )
 
+        driver_to_team = {}
+        data_source = stop_data.get("table") or stop_data.get("grid_data") or []
+        for row in data_source:
+            if len(row) > 2:
+                driver_to_team[row[1]] = row[2]
+
         if stop_type == "grid":
-            headers = ["Grid Pos", "Driver", "Team", "Start Tyre"]
+            headers = ["Posição", "Piloto", "Time", "Pneu"]
+            display_grid = []
+
+            for row in stop_data["grid_data"]:
+                pos, driver, team, tyre = row
+                display_grid.append(
+                    [
+                        pos,
+                        self._get_display_driver(driver),
+                        self._get_display_team(team),
+                        tyre,
+                    ]
+                )
+
             table = self.ax_table.table(
-                cellText=stop_data["grid_data"],
+                cellText=display_grid,
                 colLabels=headers,
                 cellLoc="center",
                 bbox=[0.20, 0.05, 0.6, 0.95],
@@ -138,7 +198,6 @@ class RaceReplayApp:
             self._style_table(table, tyre_col_idx=3)
 
         else:
-            # Render Straight-Line Relative Track Positions
             self.ax_plot.axis("on")
             for spine in ("top", "right", "left"):
                 self.ax_plot.spines[spine].set_visible(False)
@@ -147,21 +206,27 @@ class RaceReplayApp:
             self.ax_plot.axhline(0, color=AXIS_COLOR, linestyle="--", alpha=0.7)
 
             max_gap = 0
-            for driver, gap_to_leader, color in stop_data["plot"]:
+            for driver, gap_to_leader, orig_color in stop_data["plot"]:
                 x_pos = -gap_to_leader
+
+                display_driver = self._get_plot_driver_abbr(driver)
+
+                real_team = driver_to_team.get(driver, "")
+                plot_color = self._get_team_color(real_team, orig_color)
+
                 self.ax_plot.plot(
                     x_pos,
                     0,
                     marker="o",
                     markersize=12,
-                    color=color,
+                    color=plot_color,
                     markeredgecolor="white",
                     markeredgewidth=1.2,
                 )
                 self.ax_plot.text(
                     x_pos,
                     0.06,
-                    driver,
+                    display_driver,
                     fontsize=9,
                     ha="center",
                     va="bottom",
@@ -181,10 +246,23 @@ class RaceReplayApp:
                 fontsize=10,
             )
 
-            # Render Standings Table
-            headers = ["Pos", "Driver", "Team", "Tyre", "Interval"]
+            headers = ["Posição", "Piloto", "Time", "Pneu", "Distância"]
+            display_table = []
+
+            for row in stop_data["table"]:
+                pos, driver, team, tyre, gap = row
+                display_table.append(
+                    [
+                        pos,
+                        self._get_display_driver(driver),
+                        self._get_display_team(team),
+                        tyre,
+                        gap,
+                    ]
+                )
+
             table = self.ax_table.table(
-                cellText=stop_data["table"],
+                cellText=display_table,
                 colLabels=headers,
                 cellLoc="center",
                 bbox=[0.15, 0, 0.7, 0.9],
