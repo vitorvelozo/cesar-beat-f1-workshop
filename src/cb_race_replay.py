@@ -18,7 +18,7 @@ def main() -> None:
     timeline_stops = load_race_timeline(YEAR, GP_NAME, "R")
 
     print(f"Successfully loaded {len(timeline_stops)} timeline stops. Launching UI...")
-    app = RaceReplayApp(timeline_stops, YEAR, GP_NAME)
+    app = RaceReplayApp(timeline_stops, YEAR, GP_NAME, hidden_info=True)
     app.show()
 
 
